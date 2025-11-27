@@ -17,6 +17,7 @@ import {
   ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
+  useAssistantState,
 } from "@assistant-ui/react";
 
 import type { FC } from "react";
@@ -104,10 +105,68 @@ const ThreadWelcome: FC = () => {
             transition={{ delay: 0.1 }}
             className="aui-thread-welcome-message-motion-2 text-2xl text-muted-foreground/65"
           >
-            ¿En qué puedo ayudarte hoy?
+            ¿En qué te puedo ayudar hoy?
           </m.div>
         </div>
       </div>
+      {/* <ThreadSuggestions />*/}
+    </div>
+  );
+};
+
+const ThreadSuggestions: FC = () => {
+  return (
+    <div className="aui-thread-welcome-suggestions grid w-full gap-2 pb-4 @md:grid-cols-2">
+      {[
+        {
+          title: "What's the weather",
+          label: "in San Francisco?",
+          action: "What's the weather in San Francisco?",
+        },
+        {
+          title: "Explain React hooks",
+          label: "like useState and useEffect",
+          action: "Explain React hooks like useState and useEffect",
+        },
+        {
+          title: "Write a SQL query",
+          label: "to find top customers",
+          action: "Write a SQL query to find top customers",
+        },
+        {
+          title: "Create a meal plan",
+          label: "for healthy weight loss",
+          action: "Create a meal plan for healthy weight loss",
+        },
+      ].map((suggestedAction, index) => (
+        <m.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ delay: 0.05 * index }}
+          key={`suggested-action-${suggestedAction.title}-${index}`}
+          className="aui-thread-welcome-suggestion-display [&:nth-child(n+3)]:hidden @md:[&:nth-child(n+3)]:block"
+        >
+          <ThreadPrimitive.Suggestion
+            prompt={suggestedAction.action}
+            send
+            asChild
+          >
+            <Button
+              variant="ghost"
+              className="aui-thread-welcome-suggestion h-auto w-full flex-1 flex-wrap items-start justify-start gap-1 rounded-3xl border px-5 py-4 text-left text-sm @md:flex-col dark:hover:bg-accent/60"
+              aria-label={suggestedAction.action}
+            >
+              <span className="aui-thread-welcome-suggestion-text-1 font-medium">
+                {suggestedAction.title}
+              </span>
+              <span className="aui-thread-welcome-suggestion-text-2 text-muted-foreground">
+                {suggestedAction.label}
+              </span>
+            </Button>
+          </ThreadPrimitive.Suggestion>
+        </m.div>
+      ))}
     </div>
   );
 };
@@ -186,7 +245,7 @@ const AssistantMessage: FC = () => {
         className="aui-assistant-message-root relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-4 duration-150 ease-out fade-in slide-in-from-bottom-1 last:mb-24"
         data-role="assistant"
       >
-        <div className="aui-assistant-message-content mx-2 leading-7 break-words text-foreground">
+        <div className="aui-assistant-message-content mx-2 leading-7 break-words text-foreground"> 
           <MessagePrimitive.Parts
             components={{
               Text: MarkdownText,
@@ -245,6 +304,7 @@ const UserMessage: FC = () => {
           <div className="aui-user-message-content rounded-3xl bg-muted px-5 py-2.5 break-words text-foreground">
             <MessagePrimitive.Parts />
           </div>
+          <MessageInfo />
           <div className="aui-user-action-bar-wrapper absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
             <UserActionBar />
           </div>
@@ -253,6 +313,38 @@ const UserMessage: FC = () => {
         <BranchPicker className="aui-user-branch-picker col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
       </div>
     </MessagePrimitive.Root>
+  );
+};
+
+const MessageInfo = () => {
+  const messageId = useAssistantState(s => s.message.id);
+  const role = useAssistantState(s => s.message.role);
+  const dateValue = useAssistantState(s => {
+    // cast to any to safely access optional/variant timestamp fields that may exist
+    const msg = s.message as any;
+    // try common fields in order: sentAt, metadata.createdAt, metadata.created_at, createdAt, timestamp
+    return (
+      msg.sentAt ??
+      msg.metadata?.createdAt ??
+      msg.metadata?.created_at ??
+      msg.createdAt ??
+      msg.timestamp ??
+      Date.now()
+    );
+  });
+  const date = new Date(dateValue);
+  const formattedDate = new Intl.DateTimeFormat("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+
+  return (
+    <div className="text-[10px] text-muted-foreground mt-1">
+      {formattedDate}
+    </div>
   );
 };
 
@@ -284,12 +376,12 @@ const EditComposer: FC = () => {
         <div className="aui-edit-composer-footer mx-3 mb-3 flex items-center justify-center gap-2 self-end">
           <ComposerPrimitive.Cancel asChild>
             <Button variant="ghost" size="sm" aria-label="Cancel edit">
-              Cancel
+              Cancelar
             </Button>
           </ComposerPrimitive.Cancel>
           <ComposerPrimitive.Send asChild>
             <Button size="sm" aria-label="Update message">
-              Update
+              Actualizar
             </Button>
           </ComposerPrimitive.Send>
         </div>

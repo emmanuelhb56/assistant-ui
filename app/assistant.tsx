@@ -8,11 +8,10 @@ import {
 } from "@assistant-ui/react-ai-sdk";
 import { Thread } from "@/components/assistant-ui/thread";
 import { ThreadList } from "@/components/assistant-ui/thread-list";
-import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 export const Assistant = () => {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({
       api: "/api/chat",
@@ -22,7 +21,7 @@ export const Assistant = () => {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <div className="relative flex h-dvh">
-        {/* Sidebar con transición */}
+        {/*
         <div
           className={`relative border-r border-border/40 bg-muted/30 transition-all duration-300 ease-in-out ${
             isSidebarCollapsed ? "w-0 overflow-hidden" : "w-[200px]"
@@ -31,8 +30,7 @@ export const Assistant = () => {
           <div className="h-full px-2 py-4">
             <ThreadList />
           </div>
-          
-          {/* Botón de toggle cuando sidebar está expandida */}
+
           {!isSidebarCollapsed && (
             <button
               onClick={() => setIsSidebarCollapsed(true)}
@@ -44,7 +42,6 @@ export const Assistant = () => {
           )}
         </div>
 
-        {/* Botón de toggle cuando sidebar está colapsada */}
         {isSidebarCollapsed && (
           <button
             onClick={() => setIsSidebarCollapsed(false)}
@@ -53,9 +50,8 @@ export const Assistant = () => {
           >
             <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
           </button>
-        )}
-
-        {/* Área principal del chat */}
+        )} 
+        */}
         <div className="flex-1 overflow-hidden px-4 py-4">
           <Thread />
         </div>
