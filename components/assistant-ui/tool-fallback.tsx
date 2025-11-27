@@ -1,46 +1,55 @@
 import type { ToolCallMessagePartComponent } from "@assistant-ui/react";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { SearchIcon, AlertCircleIcon, Loader2Icon } from "lucide-react";
 
 export const ToolFallback: ToolCallMessagePartComponent = ({
   toolName,
   argsText,
   result,
+  status,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  return (
-    <div className="aui-tool-fallback-root mb-4 flex w-full flex-col gap-3 rounded-lg border py-3 hidden">
-      <div className="aui-tool-fallback-header flex items-center gap-2 px-4">
-        <CheckIcon className="aui-tool-fallback-icon size-4" />
-        <p className="aui-tool-fallback-title flex-grow">
-          Usando la herramienta: <b>{toolName}</b>
-        </p>
-        <Button onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
-        </Button>
-      </div>
-      {!isCollapsed && (
-        <div className="aui-tool-fallback-content flex flex-col gap-2 border-t pt-2">
-          <div className="aui-tool-fallback-args-root px-4">
-            <pre className="aui-tool-fallback-args-value whitespace-pre-wrap">
-              {argsText}
-            </pre>
-          </div>
-          {result !== undefined && (
-            <div className="aui-tool-fallback-result-root border-t border-dashed px-4 pt-2">
-              <p className="aui-tool-fallback-result-header font-semibold">
-                Result:
-              </p>
-              <pre className="aui-tool-fallback-result-content whitespace-pre-wrap">
-                {typeof result === "string"
-                  ? result
-                  : JSON.stringify(result, null, 2)}
-              </pre>
-            </div>
-          )}
+  // Verificar si hay un error en el status
+  const hasError = status?.type === "incomplete" && status?.reason === "error";
+
+  // Si hay un error, mostrar mensaje de error
+  if (hasError) {
+    return (
+      <div 
+        className="aui-tool-fallback-error mb-3 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm shadow-sm"
+        style={{ 
+          backgroundColor: '#fef2f2',
+          borderColor: '#fecaca',
+        }}
+      >
+        <div 
+          className="flex size-6 items-center justify-center rounded-full flex-shrink-0"
+          style={{ backgroundColor: '#fee2e2' }}
+        >
+          <AlertCircleIcon className="size-4" style={{ color: '#dc2626' }} />
         </div>
-      )}
-    </div>
-  );
+        <span style={{ color: '#991b1b' }}>
+          Error al consultar la información. Por favor, intenta de nuevo.
+        </span>
+      </div>
+    );
+  }
+
+  // Si result es undefined o status es "running", la herramienta aún se está ejecutando
+  if (result === undefined || status?.type === "running") {
+    return (
+      <div className="aui-tool-fallback-loading mb-1 flex items-center gap-2 px-2 py-1 text-sm">
+        <Loader2Icon className="size-3.5 animate-spin flex-shrink-0" style={{ color: '#4672f1' }} />
+        <span className="flex items-center gap-1" style={{ color: '#001b48' }}>
+          <span>Consultando información</span>
+          <span className="flex gap-0.5">
+            <span className="animate-bounce-dot inline-block" style={{ animationDelay: '0ms' }}>.</span>
+            <span className="animate-bounce-dot inline-block" style={{ animationDelay: '200ms' }}>.</span>
+            <span className="animate-bounce-dot inline-block" style={{ animationDelay: '400ms' }}>.</span>
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  // Si la herramienta completó exitosamente, no mostrar nada (oculto para el usuario)
+  return null;
 };

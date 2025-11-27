@@ -1,4 +1,5 @@
 import {
+  AlertCircleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
   CheckIcon,
@@ -35,6 +36,7 @@ import {
 } from "@/components/assistant-ui/attachment";
 
 import { cn } from "@/lib/utils";
+import { useUrlParams } from "@/lib/use-url-params";
 
 export const Thread: FC = () => {
   return (
@@ -75,7 +77,7 @@ const ThreadScrollToBottom: FC = () => {
   return (
     <ThreadPrimitive.ScrollToBottom asChild>
       <TooltipIconButton
-        tooltip="Scroll to bottom"
+        tooltip="Ir al final"
         variant="outline"
         className="aui-thread-scroll-to-bottom absolute -top-12 z-10 self-center rounded-full p-4 disabled:invisible dark:bg-background dark:hover:bg-accent"
       >
@@ -86,6 +88,25 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 const ThreadWelcome: FC = () => {
+  const { nombre } = useUrlParams();
+  
+  // Construir el mensaje de bienvenida personalizado
+  const getWelcomeMessage = () => {
+    if (nombre) {
+      return {
+        greeting: `¡Hola, ${nombre}!`,
+        question: `¿En qué puedo ayudarte hoy?`,
+      };
+    } 
+    // Mensaje por defecto
+    return {
+      greeting: "¡Hola!",
+      question: "¿En qué te puedo ayudar hoy?",
+    };
+  };
+
+  const { greeting, question } = getWelcomeMessage();
+
   return (
     <div className="aui-thread-welcome-root mx-auto my-auto flex w-full max-w-[var(--thread-max-width)] flex-grow flex-col">
       <div className="aui-thread-welcome-center flex w-full flex-grow flex-col items-center justify-center">
@@ -96,7 +117,7 @@ const ThreadWelcome: FC = () => {
             exit={{ opacity: 0, y: 10 }}
             className="aui-thread-welcome-message-motion-1 text-2xl font-semibold"
           >
-            ¡Hola!
+            {greeting}
           </m.div>
           <m.div
             initial={{ opacity: 0, y: 10 }}
@@ -105,7 +126,7 @@ const ThreadWelcome: FC = () => {
             transition={{ delay: 0.1 }}
             className="aui-thread-welcome-message-motion-2 text-2xl text-muted-foreground/65"
           >
-            ¿En qué te puedo ayudar hoy?
+            {question}
           </m.div>
         </div>
       </div>
@@ -198,13 +219,14 @@ const ComposerAction: FC = () => {
       <ThreadPrimitive.If running={false}>
         <ComposerPrimitive.Send asChild>
           <TooltipIconButton
-            tooltip="Send message"
+            tooltip="Enviar mensaje"
             side="bottom"
             type="submit"
             variant="default"
             size="icon"
-            className="aui-composer-send size-[34px] rounded-full p-1"
-            aria-label="Send message"
+            className="aui-composer-send size-[34px] rounded-full p-1 text-white hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: '#4672f1' }}
+            aria-label="Enviar mensaje"
           >
             <ArrowUpIcon className="aui-composer-send-icon size-5" />
           </TooltipIconButton>
@@ -218,7 +240,7 @@ const ComposerAction: FC = () => {
             variant="default"
             size="icon"
             className="aui-composer-cancel size-[34px] rounded-full border border-muted-foreground/60 hover:bg-primary/75 dark:border-muted-foreground/90"
-            aria-label="Stop generating"
+            aria-label="Detener generación"
           >
             <Square className="aui-composer-cancel-icon size-3.5 fill-white dark:fill-black" />
           </Button>
@@ -231,8 +253,18 @@ const ComposerAction: FC = () => {
 const MessageError: FC = () => {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/5 dark:text-red-200">
-        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      <ErrorPrimitive.Root 
+        className="aui-message-error-root mt-2 rounded-xl border p-3 text-sm shadow-sm flex items-center gap-2"
+        style={{
+          backgroundColor: '#fef2f2',
+          borderColor: '#fecaca',
+        }}
+      >
+        <AlertCircleIcon className="size-4 flex-shrink-0" style={{ color: '#dc2626' }} />
+        <ErrorPrimitive.Message 
+          className="aui-message-error-message line-clamp-2" 
+          style={{ color: '#991b1b' }}
+        />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );
@@ -242,22 +274,24 @@ const AssistantMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-assistant-message-root relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-4 duration-150 ease-out fade-in slide-in-from-bottom-1 last:mb-24"
+        className="aui-assistant-message-root relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-4 duration-150 ease-out fade-in slide-in-from-bottom-1 last:mb-24 flex justify-start"
         data-role="assistant"
       >
-        <div className="aui-assistant-message-content mx-2 leading-7 break-words text-foreground"> 
-          <MessagePrimitive.Parts
-            components={{
-              Text: MarkdownText,
-              tools: { Fallback: ToolFallback },
-            }}
-          />
-          <MessageError />
-        </div>
+        <div className="max-w-[85%]">
+          <div className="aui-assistant-message-content mx-2 leading-6 break-words text-foreground text-sm rounded-3xl px-5 py-2.5 bg-muted/50 border border-border/50"> 
+            <MessagePrimitive.Parts
+              components={{
+                Text: MarkdownText,
+                tools: { Fallback: ToolFallback },
+              }}
+            />
+            <MessageError />
+          </div>
 
-        <div className="aui-assistant-message-footer mt-2 ml-2 flex">
-          <BranchPicker />
-          <AssistantActionBar />
+          <div className="aui-assistant-message-footer mt-2 ml-2 flex">
+            <BranchPicker />
+            <AssistantActionBar />
+          </div>
         </div>
       </div>
     </MessagePrimitive.Root>
@@ -273,7 +307,7 @@ const AssistantActionBar: FC = () => {
       className="aui-assistant-action-bar-root col-start-3 row-start-2 -ml-1 flex gap-1 text-muted-foreground data-floating:absolute data-floating:rounded-md data-floating:border data-floating:bg-background data-floating:p-1 data-floating:shadow-sm"
     >
       <ActionBarPrimitive.Copy asChild>
-        <TooltipIconButton tooltip="Copy">
+        <TooltipIconButton tooltip="Copiar">
           <MessagePrimitive.If copied>
             <CheckIcon />
           </MessagePrimitive.If>
@@ -283,7 +317,7 @@ const AssistantActionBar: FC = () => {
         </TooltipIconButton>
       </ActionBarPrimitive.Copy>
       <ActionBarPrimitive.Reload asChild>
-        <TooltipIconButton tooltip="Refresh">
+        <TooltipIconButton tooltip="Actualizar">
           <RefreshCwIcon />
         </TooltipIconButton>
       </ActionBarPrimitive.Reload>
@@ -295,22 +329,24 @@ const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root asChild>
       <div
-        className="aui-user-message-root mx-auto grid w-full max-w-[var(--thread-max-width)] animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 px-2 py-4 duration-150 ease-out fade-in slide-in-from-bottom-1 first:mt-3 last:mb-5 [&:where(>*)]:col-start-2"
+        className="aui-user-message-root mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-4 duration-150 ease-out fade-in slide-in-from-bottom-1 first:mt-3 last:mb-5 flex justify-end"
         data-role="user"
       >
-        <UserMessageAttachments />
+        <div className="max-w-[85%] flex flex-col items-end">
+          <UserMessageAttachments />
 
-        <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
-          <div className="aui-user-message-content rounded-3xl bg-muted px-5 py-2.5 break-words text-foreground">
-            <MessagePrimitive.Parts />
+          <div className="aui-user-message-content-wrapper relative min-w-0 flex flex-col items-end">
+            <div className="aui-user-message-content rounded-3xl px-5 py-2.5 break-words text-sm leading-6 text-white" style={{ backgroundColor: '#4672f1' }}>
+              <MessagePrimitive.Parts />
+            </div>
+            <MessageInfo />
+            <div className="aui-user-action-bar-wrapper absolute top-1/2 right-0 translate-x-full -translate-y-1/2 pl-2">
+              <UserActionBar />
+            </div>
           </div>
-          <MessageInfo />
-          <div className="aui-user-action-bar-wrapper absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
-            <UserActionBar />
-          </div>
+
+          <BranchPicker className="aui-user-branch-picker mt-2 -mr-1 justify-end" />
         </div>
-
-        <BranchPicker className="aui-user-branch-picker col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
       </div>
     </MessagePrimitive.Root>
   );
@@ -333,16 +369,35 @@ const MessageInfo = () => {
     );
   });
   const date = new Date(dateValue);
-  const formattedDate = new Intl.DateTimeFormat("es-ES", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const isYesterday = date.toDateString() === new Date(now.getTime() - 86400000).toDateString();
+  
+  let formattedDate: string;
+  
+  if (isToday) {
+    formattedDate = new Intl.DateTimeFormat("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+    formattedDate = `Hoy, ${formattedDate}`;
+  } else if (isYesterday) {
+    formattedDate = new Intl.DateTimeFormat("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+    formattedDate = `Ayer, ${formattedDate}`;
+  } else {
+    formattedDate = new Intl.DateTimeFormat("es-ES", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }
 
   return (
-    <div className="text-[10px] text-muted-foreground mt-1">
+    <div className="text-xs text-muted-foreground/70 mt-1.5 text-right font-normal">
       {formattedDate}
     </div>
   );
@@ -356,7 +411,7 @@ const UserActionBar: FC = () => {
       className="aui-user-action-bar-root flex flex-col items-end"
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit" className="aui-user-action-edit p-4">
+        <TooltipIconButton tooltip="Editar" className="aui-user-action-edit p-4">
           <PencilIcon />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>
@@ -375,12 +430,17 @@ const EditComposer: FC = () => {
 
         <div className="aui-edit-composer-footer mx-3 mb-3 flex items-center justify-center gap-2 self-end">
           <ComposerPrimitive.Cancel asChild>
-            <Button variant="ghost" size="sm" aria-label="Cancel edit">
+            <Button variant="ghost" size="sm" aria-label="Cancelar edición">
               Cancelar
             </Button>
           </ComposerPrimitive.Cancel>
           <ComposerPrimitive.Send asChild>
-            <Button size="sm" aria-label="Update message">
+            <Button 
+              size="sm" 
+              aria-label="Actualizar mensaje"
+              className="text-white hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#4672f1' }}
+            >
               Actualizar
             </Button>
           </ComposerPrimitive.Send>
@@ -404,7 +464,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
       {...rest}
     >
       <BranchPickerPrimitive.Previous asChild>
-        <TooltipIconButton tooltip="Previous">
+        <TooltipIconButton tooltip="Anterior">
           <ChevronLeftIcon />
         </TooltipIconButton>
       </BranchPickerPrimitive.Previous>
@@ -412,7 +472,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
         <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
       </span>
       <BranchPickerPrimitive.Next asChild>
-        <TooltipIconButton tooltip="Next">
+        <TooltipIconButton tooltip="Siguiente">
           <ChevronRightIcon />
         </TooltipIconButton>
       </BranchPickerPrimitive.Next>
